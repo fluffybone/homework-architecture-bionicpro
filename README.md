@@ -1,7 +1,7 @@
 # Задание 1. Повышение безопасности системы
 
 ## Предложите архитектурное решение и доработайте диаграмму C4 для управления учётными данными пользователя. 
-[Диаграмма](diagram\bionik_diagram_task1.drawio)
+[Диаграмма](diagram/bionik_diagram_task1.drawio)
 
 ## Улучшите безопасность существующего приложения, заменив Code Grant на PKCE
 
@@ -9,14 +9,14 @@
  
  Повторная аторизация и проверка
 
- ![Проверка параметров](images\checkSha.png)
- ![Включение опции Proof key](images\checkCode.png)
+ ![Проверка параметров](images/checkSha.png)
+ ![Включение опции Proof key](images/checkCode.png)
 
 # Задание 2. Разработка сервиса отчётов
 
 ## 1. Создать архитектуру решения для подготовки и получения отчётов.
 
-[Диаграмма](diagram\bionik_diagram_task2.drawio)
+[Диаграмма](diagram/bionik_diagram_task2.drawio)
 
 ## 2. Разработать Airflow DAG и настроить его на запуск по расписанию.
 
@@ -42,25 +42,25 @@
 --------------------------
 
 #### **Проверка**
-![Init](imagesTask2\init.png)
+![Init](imagesTask2/init.png)
 
-![Add Connection](imagesTask2\addConnection.png)
+![Add Connection](imagesTask2/addConnection.png)
 
-![Check Dugs](imagesTask2\task1Result.png)
+![Check Dugs](imagesTask2/task1Result.png)
 
-![Check Table](imagesTask2\checkTable.png)
+![Check Table](imagesTask2/checkTable.png)
 
 ## 3. Создайте бэкенд-часть приложения для API.
 
-![addedRequestReport](imagesTask2\addedRequestReport.png)
+![addedRequestReport](imagesTask2/addedRequestReport.png)
 
 ## 4. Реализуйте ограничение доступа к эндпоинту отчётности.
  
-Дописан [Итоговый бэк](backend\main.py)
+Дописан [Итоговый бэк](backend/main.py)
 (и поправлены csv в соответсвии с конфигом пользователей кейклока)
 
 ## 5. Добавьте в UI кнопку получения отчёта и вызова эндпоинта его генерации.
 
-![Check Report](imagesTask2\answer.png)
+![Check Report](imagesTask2/answer.png)
 
-![Check Report2](imagesTask2\anotherAnswer.png)
+![Check Report2](imagesTask2/anotherAnswer.png)
