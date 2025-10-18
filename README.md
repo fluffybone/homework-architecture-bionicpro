@@ -9,8 +9,8 @@
  
  Повторная аторизация и проверка
 
- [Проверка параметров](images\checkSha.png)
- [Включение опции Proof key](images\checkCode.png)
+ ![Проверка параметров](images\checkSha.png)
+ ![Включение опции Proof key](images\checkCode.png)
 
 # Задание 2. Разработка сервиса отчётов
 
@@ -19,3 +19,32 @@
 [Диаграмма](diagram\bionik_diagram_task2.drawio)
 
 ## Разработать Airflow DAG и настроить его на запуск по расписанию.
+
+Настройте подключения в Airflow:
+
+ UI Airflow (http://localhost:8081, admin/admin).
+
+Перейти в `Admin -> Connections`.
+
+Создать подключение `bionic_pro_olap_db (тип Postgres)` со следующими параметрами:
+-------------------------
+**Host**: postgres_olap
+
+**Schema**: olap_db
+
+**Login**: olap_user
+
+**Password**: olap_password
+
+**Port**: 5432
+--------------------------
+
+#### **Проверка**
+![Init](imagesTask2\init.png)
+
+![Add Connection](imagesTask2\addConnection.png)
+
+![Check Dugs](imagesTask2\task1Result.png)
+
+![Check Table](imagesTask2\checkTable.png)
+
