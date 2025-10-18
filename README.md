@@ -54,3 +54,13 @@
 
 ![addedRequestReport](imagesTask2\addedRequestReport.png)
 
+## 4. Реализуйте ограничение доступа к эндпоинту отчётности.
+ 
+Дописан [Итоговый бэк](backend\main.py)
+(и поправлены csv в соответсвии с конфигом пользователей кейклока)
+
+## 5. Добавьте в UI кнопку получения отчёта и вызова эндпоинта его генерации.
+
+![Check Report](imagesTask2\answer.png)
+
+![Check Report2](imagesTask2\anotherAnswer.png)

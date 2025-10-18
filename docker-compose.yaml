@@ -147,6 +147,11 @@ services:
       OLAP_DB_PASSWORD: olap_password
       OLAP_DB_NAME: olap_db
       OLAP_DB_HOST: postgres_olap
+      KEYCLOAK_SERVER_URL: http://keycloak:8080/
+      KEYCLOAK_REALM: reports-realm
+      KEYCLOAK_CLIENT_ID: reports-api
     depends_on:
       postgres_olap:
         condition: service_healthy
+      keycloak:
+        condition: service_started       
