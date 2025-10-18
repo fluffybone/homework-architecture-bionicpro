@@ -14,11 +14,11 @@
 
 # Задание 2. Разработка сервиса отчётов
 
-## Создать архитектуру решения для подготовки и получения отчётов.
+## 1. Создать архитектуру решения для подготовки и получения отчётов.
 
 [Диаграмма](diagram\bionik_diagram_task2.drawio)
 
-## Разработать Airflow DAG и настроить его на запуск по расписанию.
+## 2. Разработать Airflow DAG и настроить его на запуск по расписанию.
 
 Настройте подключения в Airflow:
 
@@ -28,6 +28,8 @@
 
 Создать подключение `bionic_pro_olap_db (тип Postgres)` со следующими параметрами:
 -------------------------
+**Connection Id**: bionic_pro_olap_db
+
 **Host**: postgres_olap
 
 **Schema**: olap_db
@@ -47,4 +49,8 @@
 ![Check Dugs](imagesTask2\task1Result.png)
 
 ![Check Table](imagesTask2\checkTable.png)
+
+## 3. Создайте бэкенд-часть приложения для API.
+
+![addedRequestReport](imagesTask2\addedRequestReport.png)
 
