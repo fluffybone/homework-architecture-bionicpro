@@ -1,18 +1,32 @@
 version: '3.8'
 
+networks:
+  bionic_pro_net:
+    driver: bridge
+
 services:
   keycloak_db:
     image: postgres:14
+    container_name: keycloak_db
+    networks:
+      - bionic_pro_net
     environment:
       POSTGRES_DB: keycloak_db
       POSTGRES_USER: keycloak_user
       POSTGRES_PASSWORD: keycloak_password
-    volumes:
-      - ./postgres-keycloak-data:/var/lib/postgresql/data
-    ports:
-      - "5433:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "keycloak_user", "-d", "keycloak_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   keycloak:
     image: quay.io/keycloak/keycloak:21.1
+    container_name: keycloak_service
+    networks:
+      - bionic_pro_net
+    ports:
+      - "8080:8080"
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
@@ -20,19 +34,97 @@ services:
       KC_DB_URL: jdbc:postgresql://keycloak_db:5432/keycloak_db
       KC_DB_USERNAME: keycloak_user
       KC_DB_PASSWORD: keycloak_password
-    command: 
-      - start-dev
-      - --import-realm
+    command: ["start-dev", "--import-realm"]
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
-    ports:
-      - "8080:8080"
     depends_on:
-      - keycloak_db
+      keycloak_db:
+        condition: service_healthy
+
+  postgres_airflow:
+    image: postgres:16.0
+    container_name: postgres_airflow
+    networks:
+      - bionic_pro_net
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+
+  postgres_olap:
+    image: postgres:16.0
+    container_name: postgres_olap
+    networks:
+      - bionic_pro_net
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: olap_user
+      POSTGRES_PASSWORD: olap_password
+      POSTGRES_DB: olap_db
+    volumes:
+      - ./airflow/db/init-olap-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "olap_user"]
+      interval: 5s
+      retries: 5
+
+  airflow-init:
+    build: ./airflow
+    container_name: airflow_init
+    networks:
+      - bionic_pro_net
+    depends_on:
+      postgres_airflow: { condition: service_healthy }
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres_airflow/airflow
+      - AIRFLOW__WEBSERVER__SECRET_KEY=b8a4f54c10a12e3e5c9b1a2d3e4f5a6b7c8d9e0f1a2b3c4d5e6
+    command: >
+      bash -c "airflow db init && airflow users create --username admin --password admin --firstname admin --lastname admin --role Admin --email admin@example.org"
+
+  airflow-webserver:
+    build: ./airflow
+    container_name: airflow_webserver
+    networks:
+      - bionic_pro_net
+    ports:
+      - "8081:8080"
+    depends_on:
+      airflow-init: { condition: service_completed_successfully }
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/data:/opt/airflow/sample_files
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres_airflow/airflow
+      - AIRFLOW__WEBSERVER__SECRET_KEY=b8a4f54c10a12e3e5c9b1a2d3e4f5a6b7c8d9e0f1a2b3c4d5e6
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    command: webserver
+
+  airflow-scheduler:
+    build: ./airflow
+    container_name: airflow_scheduler
+    networks:
+      - bionic_pro_net
+    depends_on:
+      airflow-webserver: { condition: service_started }
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/data:/opt/airflow/sample_files
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres_airflow/airflow
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__SECRET_KEY=b8a4f54c10a12e3e5c9b1a2d3e4f5a6b7c8d9e0f1a2b3c4d5e6
+    command: scheduler
+
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    build: ./frontend
+    container_name: frontend_app
+    networks:
+      - bionic_pro_net
     ports:
       - "3000:3000"
     environment:
@@ -40,3 +132,26 @@ services:
       REACT_APP_KEYCLOAK_URL: http://localhost:8080
       REACT_APP_KEYCLOAK_REALM: reports-realm
       REACT_APP_KEYCLOAK_CLIENT_ID: reports-frontend
+    depends_on:
+      - keycloak
+
+  backend:
+    build: ./backend
+    container_name: backend_service
+    networks:
+      - bionic_pro_net
+    ports:
+      - "8000:8000"
+    environment:
+      OLAP_DB_USER: olap_user
+      OLAP_DB_PASSWORD: olap_password
+      OLAP_DB_NAME: olap_db
+      OLAP_DB_HOST: postgres_olap
+      KEYCLOAK_SERVER_URL: http://keycloak:8080/
+      KEYCLOAK_REALM: reports-realm
+      KEYCLOAK_CLIENT_ID: reports-api
+    depends_on:
+      postgres_olap:
+        condition: service_healthy
+      keycloak:
+        condition: service_started       
